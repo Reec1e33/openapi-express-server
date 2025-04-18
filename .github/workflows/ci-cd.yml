@@ -40,13 +40,8 @@ jobs:
           username: reec1e33
           key: ${{ secrets.LINODE_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USER }}/openai-express:latest
-            docker stop openai-express || true
-            docker rm   openai-express || true
-            docker run -d \
-              --name openai-express \
-              --restart unless-stopped \
-              --env OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-              -p 3000:3000 \
-              ${{ secrets.DOCKERHUB_USER }}/openai-express:latest
+            # pass the OpenAI key into the VPS environment
+            export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+            # invoke your deployment script on the server
+            /usr/local/bin/deploy.sh
 
