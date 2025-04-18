@@ -1,0 +1,42 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: \${{ secrets.DOCKERHUB_USER }}
+          password: \${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: \${{ secrets.DOCKERHUB_USER }}/openai-express:latest
+
+      - name: Deploy to Linode via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: \${{ secrets.LINODE_HOST }}
+          username: reece
+          key: \${{ secrets.LINODE_SSH_KEY }}
+          script: |
+            docker pull \${{ secrets.DOCKERHUB_USER }}/openai-express:latest
+            docker stop openai-express || true
+            docker rm   openai-express || true
+            docker run -d \
+              --name openai-express \
+              --env OPENAI_API_KEY="\${{ secrets.OPENAI_API_KEY }}" \
+              -p 3000:3000 \
+              \${{ secrets.DOCKERHUB_USER }}/openai-express:latest
