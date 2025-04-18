@@ -1,36 +1,29 @@
-// Load environment variables
+// index.js
 require('dotenv').config();
-
 const express = require('express');
-const OpenAI = require('openai');
+const { OpenAI } = require('openai');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const app   = express();
-
+const app = express();
 app.use(express.json());
 
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
-  if (!message) {
-    return res.status(400).json({ error: 'Missing message' });
-  }
+  if (!message) return res.status(400).json({ error: 'No message provided' });
 
   try {
     const completion = await openai.chat.completions.create({
-      model:    'gpt-4',
-      messages: [{ role: 'user', content: message }]
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: message }],
     });
     res.json({ reply: completion.choices[0].message.content });
   } catch (err) {
-    console.error('OpenAI error:', err);
-    const status   = err.status || 500;
-    const errorMsg = err.response?.data ?? err.message;
-    res.status(status).json({ error: errorMsg });
+    res
+      .status(err.status || 500)
+      .json({ error: err.response?.data || err.message });
   }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
 
