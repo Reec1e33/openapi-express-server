@@ -40,8 +40,6 @@ jobs:
           username: reec1e33
           key: ${{ secrets.LINODE_SSH_KEY }}
           script: |
-            # pass the OpenAI key into the VPS environment
             export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
-            # invoke your deployment script on the server
             /usr/local/bin/deploy.sh
 
